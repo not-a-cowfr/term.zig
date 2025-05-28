@@ -1,4 +1,4 @@
-> !important
+> [!Important]
 > This is not the original repo, this is a fork so i can fix issues, for the orginal code go to https://codeberg.org/gnarz/term
 
 # term
