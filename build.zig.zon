@@ -1,6 +1,9 @@
 .{
-    .name = "term",
+    .name = .term,
     .version = "0.0.0",
+
+    // if forking, delete this and run `zig build` to generate a new one
+    .fingerprint = 0xa50fe78d6453b9db,
 
     .paths = .{
         "build.zig",
