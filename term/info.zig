@@ -762,7 +762,7 @@ const PathListIterator = struct {
 };
 
 fn tryTerminfoOpen(path: []const u8, dir: []const u8, term: []const u8) fs.File.OpenError!?fs.File {
-    var buf: [fs.MAX_PATH_BYTES]u8 = undefined;
+    var buf: [fs.max_path_bytes]u8 = undefined;
     const fullpath = (if (dir.len == 0)
         std.fmt.bufPrint(&buf, "{s}/{c}/{s}", .{ path, term[0], term })
     else
