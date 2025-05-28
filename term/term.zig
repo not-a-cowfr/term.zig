@@ -241,8 +241,8 @@ pub const Term = struct {
         var ttyfile = try std.fs.openFileAbsolute("/dev/tty", .{ .mode = .read_write });
         errdefer ttyfile.close();
         const t_ios = try ios.tcgetattr(ttyfile.handle);
-        const term_name = std.posix.getenv("TERM");
-        var t_info = try info.Terminfo.init(allocator, term_name.?);
+        const term_name = try std.process.getEnvVarOwned(allocator, "TERM");
+        var t_info = try info.Terminfo.init(allocator, term_name);
         errdefer t_info.deinit();
         // setup a signal fd for the WINCH signals
         var sigset: std.posix.sigset_t = std.posix.empty_sigset;

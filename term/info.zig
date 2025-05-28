@@ -7,7 +7,7 @@
 const std = @import("std");
 const fs = std.fs;
 const os = std.os;
-const posix = std.posix;
+const getEnvVar = std.process.getEnvVarOwned;
 const mem = std.mem;
 
 const ParamEvaluator = @import("param.zig").ParamEvaluator;
@@ -775,7 +775,7 @@ fn tryTerminfoOpen(path: []const u8, dir: []const u8, term: []const u8) fs.File.
 
 // see https://www.man7.org/linux/man-pages/man5/terminfo.5.html
 // section Fetching Compiled Descriptions
-fn openTerminfoFile(term: []const u8) fs.File.OpenError!fs.File {
+fn openTerminfoFile(allocator: std.mem.Allocator, term: []const u8) !fs.File {
 
     // special: if term contains a path separator, it is treated as a file name
     // instead of being searched along any of the following paths
@@ -783,32 +783,26 @@ fn openTerminfoFile(term: []const u8) fs.File.OpenError!fs.File {
         return try fs.cwd().openFile(term, .{ .mode = .read_only });
     }
 
-    var envv = posix.getenv("TERMINFO");
-    if (envv != null) {
-        if (try tryTerminfoOpen(envv.?, "", term)) |f| {
-            return f;
-        }
+    var envv = try getEnvVar(allocator, "TERMINFO");
+    if (try tryTerminfoOpen(envv, "", term)) |f| {
+        return f;
     }
 
-    envv = posix.getenv("TERMINFO_DIRS");
-    if (envv != null) {
-        var iter = PathListIterator.init(envv.?);
-        while (iter.next()) |path| {
-            var f: ?fs.File = null;
-            if (path.len == 0) {
-                f = try tryTerminfoOpen("/etc/terminfo", "", term);
-            } else {
-                f = try tryTerminfoOpen(path, "", term);
-            }
-            if (f != null) return f.?;
+    envv = try getEnvVar(allocator, "TERMINFO_DIRS");
+    var iter = PathListIterator.init(envv);
+    while (iter.next()) |path| {
+        var f: ?fs.File = null;
+        if (path.len == 0) {
+            f = try tryTerminfoOpen("/etc/terminfo", "", term);
+        } else {
+            f = try tryTerminfoOpen(path, "", term);
         }
+        if (f != null) return f.?;
     }
 
-    envv = posix.getenv("HOME");
-    if (envv != null) {
-        if (try tryTerminfoOpen(envv.?, ".terminfo", term)) |f| {
-            return f;
-        }
+    envv = try getEnvVar(allocator, "HOME");
+    if (try tryTerminfoOpen(envv, ".terminfo", term)) |f| {
+        return f;
     }
 
     if (try tryTerminfoOpen("/etc/terminfo", "", term)) |f| {
@@ -858,7 +852,7 @@ pub const Terminfo = struct {
 
     interpolator: *ParamEvaluator,
 
-    pub const InitError = fs.File.OpenError || posix.ReadError || mem.Allocator.Error || error{
+    pub const InitError = fs.File.OpenError || std.posix.ReadError || mem.Allocator.Error || std.process.GetEnvVarOwnedError || error{
         StreamTooLong,
         InvalidMagicNumber,
     };
@@ -1015,7 +1009,7 @@ pub const Terminfo = struct {
     /// algorithm described in the terminfo(5) manpage. If term contains a '/'
     /// character, it is opened as a file relative to the cwd (i.e. using std.fs.cwd())
     pub fn init(allocator: mem.Allocator, term: []const u8) InitError!Terminfo {
-        var f = try openTerminfoFile(term);
+        var f = try openTerminfoFile(allocator, term);
         defer f.close();
         const buf = try f.reader().readAllAlloc(allocator, 64 * 1024);
         defer allocator.free(buf);

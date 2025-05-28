@@ -227,7 +227,7 @@ Querying the predefined capabilities is done by their C name. The extended capab
     ...
     const allocator = ...; // some allocator
 
-    var terminal = std.os.getenv("TERM");
+    var terminal = std.os.getenv(allocator, "TERM");
     if (terminal == null) return error.NOTTY;
     var ti = try term.Terminfo.init(allocator, terminal.?);
     defer ti.deinit();
