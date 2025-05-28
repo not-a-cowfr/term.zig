@@ -31,6 +31,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    exe.linkLibC();
     exe.root_module.addImport("term", term_module);
     b.installArtifact(exe);
 
