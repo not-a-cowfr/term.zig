@@ -1,0 +1,15 @@
+.{
+    .name = "term",
+    .version = "0.0.0",
+
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+        "term",
+        "test",
+        "test_terminfo.pl",
+        "LICENSE",
+        //"README.md",
+    },
+}
