@@ -1,3 +1,6 @@
+> !important
+> This is not the original repo, this is a fork so i can fix issues, for the orginal code go to https://codeberg.org/gnarz/term
+
 # term
 
 term is a library that provides terminal handling for zig. It includes termios and terminfo capabilities on unix like platforms, plus a termbox like interface to the terminal.
@@ -6,11 +9,23 @@ The Term struct implements the termbox like interface, and it is planned to supp
 
 ## Installation
 
-As this is a library to be used with zig, you can install it into your projects source code by using
+run to add dependency to your `build.zig.zon` via:
+```sh
+zig fetch --save https://github.com/not-a-cowfr/term.zig/archive/refs/heads/main.tar.gz
+```
 
-    git submodule add https://codeberg.org/gnarz/term term
+add module to your `build()` function in `build.zig`
+```zig
+const term_mod = b.dependency("term", .{
+  .target = target,
+  .optimize = optimize,
+}).module("term");
 
-For v0.12, this will be different, as the module system will be used. For the time being, it is not. `zig build` works on both zig v0.11 and zig master, also with test or run arguments.`zig build docs` only works on v0.11.
+exe.addImport("term", term_mod);
+
+// Term requires this
+exe.linkLibC();
+```
 
 ## Use
 
